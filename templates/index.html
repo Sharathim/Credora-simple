@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credora — Academic Certificate Image Verification</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Background Ambient Glow -->
+    <div class="glow-orb glow-1"></div>
+    <div class="glow-orb glow-2"></div>
+
+    <div class="app-container">
+        <!-- Top Header -->
+        <header class="app-header">
+            <div class="brand-block">
+                <div class="brand-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="brand-title">Academic Certificate Verification</h1>
+                    <p class="brand-subtitle">Perceptual Image Hashing &amp; Quality Inspection Engine</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Security / Information Notice Banner -->
+        <div class="security-banner">
+            <div class="banner-icon">ℹ️</div>
+            <div class="banner-content">
+                <strong>Proof of Concept Demo:</strong> This application tests whether a physical certificate photograph or scan matches an authorized issuer's original digital certificate using <em>OpenCV Quality Gates</em>, <em>4-Point Perspective Transform</em>, and <em>Perceptual Image Hashing (pHash)</em>.
+            </div>
+        </div>
+
+        <!-- Main Mode Tabs -->
+        <nav class="main-tabs">
+            <button class="tab-btn active" data-tab="issuer-section">
+                <span class="tab-icon">🏛️</span>
+                <div class="tab-text">
+                    <span class="tab-heading">ISSUER — Upload Original</span>
+                    <span class="tab-desc">Upload &amp; Register Master Certificate</span>
+                </div>
+            </button>
+            <button class="tab-btn" data-tab="verifier-section">
+                <span class="tab-icon">🔍</span>
+                <div class="tab-text">
+                    <span class="tab-heading">VERIFIER — Verify Certificate</span>
+                    <span class="tab-desc">Verify Photograph / Scanned Copy</span>
+                </div>
+            </button>
+        </nav>
+
+        <!-- ======================================================== -->
+        <!-- SECTION A: ISSUER UPLOAD                                  -->
+        <!-- ======================================================== -->
+        <section id="issuer-section" class="tab-panel active">
+            <div class="panel-grid">
+                <!-- Issuer Upload Card -->
+                <div class="card glass-card">
+                    <div class="card-header">
+                        <h2 class="card-title">Issuer Upload</h2>
+                        <p class="card-desc">Upload the original digital certificate. The system will check image quality, preprocess the document, and generate a unique Certificate ID.</p>
+                    </div>
+
+                    <form id="issuer-form" class="upload-form">
+                        <!-- Drag and drop container -->
+                        <div class="drop-zone" id="issuer-drop-zone">
+                            <input type="file" id="issuer-file-input" accept="image/*" class="file-input-hidden">
+                            <div class="drop-zone-content" id="issuer-drop-content">
+                                <div class="upload-icon">📄</div>
+                                <p class="drop-primary">Drag &amp; drop original certificate here</p>
+                                <p class="drop-secondary">or <span class="browse-link">browse files</span></p>
+                                <span class="drop-specs">Supports PNG, JPG, JPEG (Min: 500×350px)</span>
+                            </div>
+                            <div class="image-preview-wrapper hidden" id="issuer-preview-wrapper">
+                                <img id="issuer-image-preview" src="" alt="Certificate Preview">
+                                <button type="button" class="btn-clear-preview" id="btn-issuer-clear">×</button>
+                            </div>
+                        </div>
+
+                        <!-- Optional Metadata Fields -->
+                        <div class="meta-grid">
+                            <div class="input-group">
+                                <label for="issuer-student">Student Name (Optional)</label>
+                                <input type="text" id="issuer-student" placeholder="e.g. Jane Doe">
+                            </div>
+                            <div class="input-group">
+                                <label for="issuer-univ">Issuing Institution (Optional)</label>
+                                <input type="text" id="issuer-univ" placeholder="e.g. Stanford University">
+                            </div>
+                            <div class="input-group">
+                                <label for="issuer-degree">Degree / Program (Optional)</label>
+                                <input type="text" id="issuer-degree" placeholder="e.g. B.S. in Computer Science">
+                            </div>
+                            <div class="input-group">
+                                <label for="issuer-date">Date of Conferral (Optional)</label>
+                                <input type="text" id="issuer-date" placeholder="e.g. June 2024">
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary btn-block" id="btn-issuer-submit">
+                                <span class="btn-text">Process &amp; Register Original Certificate</span>
+                                <div class="spinner hidden" id="issuer-spinner"></div>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Issuer Registration Result Card -->
+                <div class="card glass-card result-container" id="issuer-result-card">
+                    <div class="card-header">
+                        <h2 class="card-title">Issuer Processing Status</h2>
+                        <p class="card-desc">Quality inspection report and generated Certificate ID.</p>
+                    </div>
+
+                    <div class="empty-state" id="issuer-empty-state">
+                        <div class="empty-icon">🛡️</div>
+                        <p>Upload a certificate to run the automated quality inspection and generate a Certificate ID.</p>
+                    </div>
+
+                    <!-- Issuer Quality Report & Output -->
+                    <div class="issuer-output hidden" id="issuer-output-content">
+                        <div class="cert-id-banner">
+                            <span class="cert-id-label">Generated Certificate ID</span>
+                            <div class="cert-id-value-box">
+                                <span class="cert-id-text" id="disp-issuer-cert-id">CERT-XXXXXX</span>
+                                <button class="btn btn-copy" id="btn-copy-cert-id" title="Copy to Clipboard">📋 Copy</button>
+                            </div>
+                            <small class="cert-id-note">Verifiers will use this Certificate ID to compare against physical copies.</small>
+                        </div>
+
+                        <h3 class="section-subheading">Image Quality Report</h3>
+                        <div class="quality-table-wrapper" id="issuer-quality-table"></div>
+
+                        <h3 class="section-subheading">Canonical Preprocessed Master</h3>
+                        <div class="canonical-preview-box">
+                            <img id="issuer-canonical-img" src="" alt="Canonical Master">
+                        </div>
+
+                        <div class="quick-action-bar" style="margin-top: 18px;">
+                            <button class="btn btn-primary btn-block" id="btn-switch-to-verify">
+                                Proceed to Verify Physical Copy &rarr;
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ======================================================== -->
+        <!-- SECTION B: VERIFY CERTIFICATE                             -->
+        <!-- ======================================================== -->
+        <section id="verifier-section" class="tab-panel">
+            <div class="panel-grid">
+                <!-- Verifier Upload & Input Card -->
+                <div class="card glass-card">
+                    <div class="card-header">
+                        <h2 class="card-title">Verify Certificate</h2>
+                        <p class="card-desc">Enter the Certificate ID and upload a photograph or scan of the physical hard copy.</p>
+                    </div>
+
+                    <form id="verifier-form" class="upload-form">
+                        <!-- Certificate ID input -->
+                        <div class="input-group highlight-group">
+                            <div class="label-row">
+                                <label for="verifier-cert-id">Certificate ID</label>
+                                <button type="button" class="link-btn" id="btn-fill-recent-id">Use Last Issued ID</button>
+                            </div>
+                            <input type="text" id="verifier-cert-id" placeholder="e.g. CERT-8F31A2" required class="input-large">
+                        </div>
+
+                        <!-- Drag and Drop Verification Image -->
+                        <div class="drop-zone" id="verifier-drop-zone">
+                            <input type="file" id="verifier-file-input" accept="image/*" class="file-input-hidden">
+                            <div class="drop-zone-content" id="verifier-drop-content">
+                                <div class="upload-icon">📷</div>
+                                <p class="drop-primary">Upload or drop photographed / scanned copy</p>
+                                <p class="drop-secondary">or <span class="browse-link">browse files</span></p>
+                                <span class="drop-specs">Photographs with perspective tilt or desk backgrounds are supported</span>
+                            </div>
+                            <div class="image-preview-wrapper hidden" id="verifier-preview-wrapper">
+                                <img id="verifier-image-preview" src="" alt="Verification Preview">
+                                <button type="button" class="btn-clear-preview" id="btn-verifier-clear">×</button>
+                            </div>
+                        </div>
+
+                        <!-- Threshold Slider Settings -->
+                        <div class="threshold-container">
+                            <div class="threshold-header">
+                                <label for="threshold-slider">Matching Threshold (MATCH_THRESHOLD): <strong id="threshold-display">85%</strong></label>
+                                <span class="threshold-tooltip" title="Similarity score threshold required to declare a MATCH.">⚙️</span>
+                            </div>
+                            <input type="range" id="threshold-slider" min="60" max="98" value="85" step="1" class="slider">
+                            <div class="threshold-labels">
+                                <span>60% (Lenient)</span>
+                                <span>85% (Default)</span>
+                                <span>98% (Strict)</span>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary btn-block" id="btn-verifier-submit">
+                                <span class="btn-text">Verify Certificate</span>
+                                <div class="spinner hidden" id="verifier-spinner"></div>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Verifier Result & Pipeline Card -->
+                <div class="card glass-card" id="verifier-result-card">
+                    <div class="card-header">
+                        <h2 class="card-title">Verification Result</h2>
+                        <p class="card-desc">Image quality validation, perspective correction, and visual similarity analysis.</p>
+                    </div>
+
+                    <div class="empty-state" id="verifier-empty-state">
+                        <div class="empty-icon">⚖️</div>
+                        <p>Enter a Certificate ID and upload a test image to start the verification process.</p>
+                    </div>
+
+                    <!-- Live Step Progress Bar -->
+                    <div class="pipeline-progress hidden" id="verifier-pipeline-progress">
+                        <h4 class="pipeline-title">Processing Pipeline</h4>
+                        <div class="pipeline-steps">
+                            <div class="step-item" id="step-1">
+                                <div class="step-dot"></div>
+                                <span class="step-label">1. Checking image quality...</span>
+                            </div>
+                            <div class="step-item" id="step-2">
+                                <div class="step-dot"></div>
+                                <span class="step-label">2. Correcting perspective...</span>
+                            </div>
+                            <div class="step-item" id="step-3">
+                                <div class="step-dot"></div>
+                                <span class="step-label">3. Generating visual fingerprint...</span>
+                            </div>
+                            <div class="step-item" id="step-4">
+                                <div class="step-dot"></div>
+                                <span class="step-label">4. Comparing with issuer record...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Verifier Output Content -->
+                    <div class="verifier-output hidden" id="verifier-output-content">
+                        <!-- Hero Match / Mismatch Badge -->
+                        <div class="decision-hero" id="decision-hero">
+                            <div class="decision-icon" id="decision-icon">✅</div>
+                            <div class="decision-body">
+                                <div class="decision-status" id="decision-badge">CERTIFICATE MATCH</div>
+                                <div class="decision-similarity-row">
+                                    <span class="sim-label">Similarity:</span>
+                                    <span class="sim-value" id="decision-sim-score">94.0%</span>
+                                    <span class="sim-pill" id="decision-sim-pill">Hamming Dist: 4</span>
+                                </div>
+                                <p class="decision-text" id="decision-explanation">Certificate appears visually consistent with the issuer's original.</p>
+                            </div>
+                        </div>
+
+                        <!-- Quality Report Table -->
+                        <h3 class="section-subheading">Image Quality Report</h3>
+                        <div class="quality-table-wrapper" id="verifier-quality-table"></div>
+
+                        <!-- Side-by-Side Visual Comparison -->
+                        <h3 class="section-subheading">Side-by-Side Visual Comparison</h3>
+                        <div class="side-by-side-viewer">
+                            <div class="compare-pane">
+                                <div class="pane-tag">Issuer Original</div>
+                                <img id="compare-issuer-img" src="" alt="Issuer Original">
+                            </div>
+                            <div class="compare-pane">
+                                <div class="pane-tag">Uploaded Certificate</div>
+                                <img id="compare-verifier-img" src="" alt="Uploaded Certificate">
+                            </div>
+                        </div>
+
+                        <!-- Multi-Algorithm Breakdown -->
+                        <details class="advanced-details">
+                            <summary>📊 Perceptual Fingerprint Details</summary>
+                            <div class="details-content">
+                                <div class="algo-grid" id="algo-breakdown-grid"></div>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast hidden" id="app-toast"></div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
